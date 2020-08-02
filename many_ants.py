@@ -1,6 +1,6 @@
 # had this problem - https://stackoverflow.com/questions/19341365/setting-two-arrays-equal
 
-import antLib
+import antLib as a
 import numpy as np
 import random as r
 import time
@@ -18,12 +18,16 @@ def get_set_ants(ant_color, hasFood_color, master, ant, antInfo):
     return hasFood_color
 
 def get_set_pheromone():  #map all pher vals to 0<p<= max_color
-  make_me_zero_if = pheromone<0.5
-  im_too_small = make_me_zero_if.any()
+  make_minimum_if = pheromone<0.5
+  make_max_color_if = pheromone>max_color
+  im_too_small = make_minimum_if.any()
+  im_too_big = make_max_color_if.any()
   all_same = (pheromone[:][:]==pheromone[X-1][Y-1]).all()
   minimum = np.amin(pheromone)
   if (all_same == False) and (im_too_small == True):    # after succes, makes ant random walk when it looks like there's no pheromone (otherwise it folows the now invisible path it took to drop food off at nest)
-    pheromone[:][:] = antLib.find_n_replace_with(pheromone,make_me_zero_if,minimum)
+    pheromone[:][:] = a.find_n_replace_with(pheromone,make_minimum_if,minimum)
+  elif (im_too_big == True):
+    pheromone[:][:] = a.find_n_replace_with(pheromone,make_max_color_if,max_color)
   return pheromone[:][:]
 
 def get_set_food(foodColor, xFood, yFood, foodSize):
@@ -72,7 +76,7 @@ homingWeight = 10000
 #===========Color stuff==============
 black_rgba = (0.0, 0.0, 0.0, 1.0)
 green_rgba = (0.0, 230./256., 64./256., 1.0)
-cmap, ant_cmap = antLib.create_ant_cmap(black_rgba, green_rgba)
+cmap, ant_cmap = a.create_ant_cmap(black_rgba, green_rgba)
 
 global black, green
 white = 0.0
@@ -85,10 +89,10 @@ black = foodPher
 #========GENERATE WORLD==========
 #global antTime, antInfo, foodMap
 antTime = 0
-antInfo = antLib.generateAnts(numAnts)
+antInfo = a.generateAnts(numAnts)
 print(antInfo)
-foodMap = antLib.generateFoodMap(X,Y,xFood,yFood,foodSize)
-pheromone = antLib.generatePheromoneMap(X,Y,1.0)
+foodMap = a.generateFoodMap(X,Y,xFood,yFood,foodSize)
+pheromone = a.generatePheromoneMap(X,Y,1.0)
 master = np.zeros((X,Y))              # intialize master array
 #======================================================
 
@@ -101,21 +105,23 @@ ax, fig = plt.subplots()
 master_obj = fig.matshow(master, cmap=ant_cmap, vmin=0.0, vmax=foodPher)
 ax.colorbar(master_obj)
 
-plt.pause(1)
+plt.pause(.01)
 
 i=0
 while antTime<10000:
 
   for ant in range(numAnts):
 
-    options = antLib.generateOptionArray(ant,antInfo,X,Y,homingWeight, antTime)
-    choice = antLib.choose(options, ant, antInfo)      # normalize Roll Biased Die
-    antLib.updatePosition(ant,antInfo,choice)
-    foodSize = antLib.checkIfHasFood(ant,antInfo,xFood,yFood,foodSize)
-    pheromone[:][:] = antLib.layPheromone(ant,randPher,foodPher,antInfo,pheromone)
-    antLib.checkIfSuccess(ant,antInfo,antTime,timeData,nestX,nestY)
+    options = a.generateOptionArray(ant,antInfo,X,Y,homingWeight, antTime)
+    choice = a.choose(options, ant, antInfo)      # normalize Roll Biased Die
+    a.updatePosition(ant,antInfo,choice)
+    foodSize = a.checkIfHasFood(ant,antInfo,xFood,yFood,foodSize)
+    pheromone[:][:] = a.layPheromone(ant,randPher,foodPher,antInfo,pheromone)
+    a.checkIfSuccess(ant,antInfo,antTime,timeData,nestX,nestY)
 
-  pheromone[:][:] = antLib.reducePheromoneMult(pheromone,decayRateMult)
+  print(pheromone)
+  print ('maow')
+  pheromone[:][:] = a.reducePheromoneMult(pheromone,decayRateMult)
   antTime+=1
 
   master[:][:] = get_set_pheromone()
@@ -125,7 +131,7 @@ while antTime<10000:
     
   master_obj.set_data(master)
   plt.draw()
-  plt.pause(1)
+  plt.pause(.01)
 
 plt.ioff()    
 plt.show()
