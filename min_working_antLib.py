@@ -20,9 +20,9 @@ def generateFoodMap(X,Y,xFood,yFood,foodSize):    #WORKS!       # creates food m
   foodMap[yFood][xFood] = foodSize
   return foodMap
 #==================================================
-def generatePheromoneMap(X,Y,max_color):           #WORKS!    #intializes pheromone map to zeros
+def generatePheromoneMap(X,Y,start_color):           #WORKS!    #intializes pheromone map to zeros
   global pheromone
-  pheromone = np.full([X,Y],max_color)              #small value rrather than zeros saved a lot of headaches (dividing by zero when normalizing). still "equal playing field"
+  pheromone = np.full([X,Y],start_color)              #small value rrather than zeros saved a lot of headaches (dividing by zero when normalizing). still "equal playing field"
   #pheromone[1][0] = r.random() * 0.1   #E       
   #pheromone[1][1] = r.random() * 0.1   #S        #otherwise I divide by 0 if no adjacent pheromone
   #pheromone[0][1] = r.random() * 0.1   #SE

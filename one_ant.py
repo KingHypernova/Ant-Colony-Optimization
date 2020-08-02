@@ -92,7 +92,7 @@ print(max_color, min_green, green, max_green,min_black,black)
 antTime = 0
 antInfo = antLib.generateAnts(numAnts)
 foodMap = antLib.generateFoodMap(X,Y,xFood,yFood,foodSize)
-pheromone = antLib.generatePheromoneMap(X,Y,max_color)
+pheromone = antLib.generatePheromoneMap(X,Y,1.0)
 master = np.zeros((X,Y))              # intialize master array
 #======================================================
 
@@ -122,9 +122,6 @@ for i in range(100000):
   pheromone[:][:] = antLib.reducePheromoneMult(pheromone,decayRateMult)
   antTime+=1
   
-  print(foodSize)
-  print('woof')
-  #master[:][:] = pheromone[:][:]
   master[:][:] = get_set_pheromone()
   master[yFood][xFood] = get_set_food(green,xFood,yFood,foodSize)     # color the food
   master[ antInfo[ant][1] ][ antInfo[ant][0] ] = get_set_ants(black, green, master, ant, antInfo)
