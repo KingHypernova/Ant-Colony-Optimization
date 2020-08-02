@@ -66,7 +66,7 @@ yFood = int(Y*(4/5))
 nestX = 0                 #for parts of the program to reference, cant change this here
 nestY = 0
 
-decayRateMult = .99             # pheromone decay rate
+decayRateMult = .9             # pheromone decay rate
 decayRateSub = .02
 randPher = 1.             # how much pheromone an ant lays
 foodPher = 10.
