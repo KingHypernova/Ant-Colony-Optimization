@@ -28,17 +28,20 @@ def generatePheromoneMap(X,Y,start_color):           #WORKS!    #intializes pher
   #pheromone[0][1] = r.random() * 0.1   #SE
   return pheromone
 #==================================================
-def layPheromone(ant,randPher,foodPher,antInfo,pheromone): #WORKS!  #@ ants new position, add pheromone value p to exisitng pheromone amount
+def layPheromone(ant,randPher,foodPher,antInfo,pheromone,max_color): #WORKS!  #@ ants new position, add pheromone value p to exisitng pheromone amount
   newX = antInfo[ant][0]
   newY = antInfo[ant][1]
   hasFood = antInfo[ant][3]
+  make_max_color_if = pheromone>max_color
+  im_too_big = make_max_color_if.any()
   if(hasFood==False):
-    return pheromone[:][:]
+    pheromone[:][:]
     #pheromone[newY][newX] = pheromone[newY][newX] + randPher #array indices are array[y][x] <------> (x,y) (see notes)
-  if(hasFood==True):
-    #print(ant,newX,newY)
+  elif(hasFood==True):
     pheromone[newY][newX] = pheromone[newY][newX] + foodPher
-    return pheromone[:][:]
+  if (im_too_big == True):
+    pheromone[:][:] = find_n_replace_with(pheromone,make_max_color_if,max_color)
+  return pheromone[:][:]
 #==================================================
 def addTime(ant,antInfo):          #works
 	antInfo[ant][5] += 1
@@ -74,7 +77,7 @@ def reducePheromoneMult(pheromone, decayRate):
 #==================================================
 def normalizeMe(array, ant, antInfo):                 # Works!
   lastMove = antInfo[ant][2]
-  array[lastMove] = 0.0								  # don't backtrack
+  array[lastMove] = 0.0								  # don't backtrack, instead of more complicated backtrack-dampening function
   normalized = array/sum(array)
   if ((array==0).all())==True:
   	array
@@ -146,7 +149,6 @@ def isCorner(UL,UR,BR,BL):            # WORKS!     #returns true if (xNow,yNow) 
 def generateCornerOptionArray(x,y,UL,UR,BR,BL,antTime):   #WORKS!     #ARGUMENT ORDER MATTERS --- does what it says
   choiceArray = np.zeros(8,dtype = float)                 
   if(UL==True):          # 1st move
-  	#print('in gen corner array')
   	choiceArray[0] = 0.  #NW
   	choiceArray[1] = 0.  #N
   	choiceArray[2] = 0.  #NE
@@ -224,60 +226,29 @@ def generateOptionArray(ant,antInfo,X,Y,homingWeight, antTime):  #WORKS   #gener
   b = bottomWall(X,Y,x,y)
   r = rightWall(X,Y,x,y)
   l = leftWall(X,Y,x,y)
-  #if antTime==0:
-  #  cA = 
   if(hasFood==False):
-    #print('in food=0 success=0 if')
     if(isCorner(UL,UR,BR,BL)==True):
-      #print('in corner if')
       cA = generateCornerOptionArray(x,y,UL,UR,BR,BL,antTime)
-      #print(cA)
     elif(isWall(t,r,b,l)==True):
-      #print('in wall if')
       cA = generateWallOptionArray(x,y,t,r,b,l)
-      #print(cA)
     else:
-      #print('in middle if')
       cA = generateMiddleOptionArray(x,y)
-      #print(cA)
   elif(hasFood==True):
-  	#print('in homing if')
   	cA = generateHomingOptionArray(X,Y,x,y,homingWeight)
-  	#print(cA)
-  #rint(cA)
   return cA
-#=================================================
-'''
-def dampenLastMove(weights, ant):
-  lastMove = antInfo[ant][2]
-  diff = []
-  for c in range(7):
-    diff[c] = weights[c+1] - weights[c]
-    if diff[c]
-'''
 #=================================================
 def choose(options, ant, antInfo):                #WORKS!        # returns choice number
   options = normalizeMe(options, ant, antInfo)
   weights = np.zeros_like(options)
   weights[0] = options[0]
-  #lastMove = antInfo[ant][2]
-  #weights[lastMove] = 0.0             # instead of some more sophisticated function for dampening backtracking
   for w in range(7):
     weights[w+1] = weights[w] + options[w+1] 
   pick = r.random()
-  #print("random # pick",pick)
   tempChoice = 0
   for c in range(8):
     if(pick<=weights[c]):
       tempChoice = c
       break
-
-  #print("roll = " + str(pick) + " ----- " , weights)
-
-#  if (weights[lastMove] == weights[lastMove+1]):          #  If I hardcode a 0% chance of backtracking, and the biased die chooses the choice before lastMove, then the CHOOSE function will auto-pick last move as the choice (weighting list bin size is 0 for indices lastMove and lastMove-1)
-#    tempChoice = lastMove
-
-  #print('choice =', tempChoice)
   return tempChoice
 #=================================================
 def updatePosition(ant,antInfo,choice):   # WORKS!  #based on choice, move ant, update lastMove
@@ -329,13 +300,10 @@ def checkIfSuccess(ant,antInfo,time,timeData,nestX,nestY):
   if(xNew==nestX and yNew==nestY and hasFood==True):
     antInfo[ant][4] += 1              # success == True
     antInfo[ant][5] = time
-    #antInfo[ant][6] = ant
     appendMe = np.array([antInfo[ant][:]])            #convert antInfo array to array of lists?
     timeData = np.append(timeData,appendMe,axis=0)    #record ant number and time in timeData array
     antInfo[ant][3] = 0         #deposit food and start over
-    #antInfo[ant][4] = 0         #switch success back to 0 after copying data (redundant)
-    #print(timeData)
-    return timeData, antInfo[ant][:]
+  return timeData
 
 #=================================================
 #=====================visuals=====================

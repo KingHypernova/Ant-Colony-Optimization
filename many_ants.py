@@ -18,16 +18,12 @@ def get_set_ants(ant_color, hasFood_color, master, ant, antInfo):
     return hasFood_color
 
 def get_set_pheromone():  #map all pher vals to 0<p<= max_color
-  make_minimum_if = pheromone<0.5
-  make_max_color_if = pheromone>max_color
-  im_too_small = make_minimum_if.any()
-  im_too_big = make_max_color_if.any()
+  make_min_cond = pheromone<0.1
+  im_too_small = make_min_cond.any() 
   all_same = (pheromone[:][:]==pheromone[X-1][Y-1]).all()
   minimum = np.amin(pheromone)
   if (all_same == False) and (im_too_small == True):    # after succes, makes ant random walk when it looks like there's no pheromone (otherwise it folows the now invisible path it took to drop food off at nest)
-    pheromone[:][:] = a.find_n_replace_with(pheromone,make_minimum_if,minimum)
-  elif (im_too_big == True):
-    pheromone[:][:] = a.find_n_replace_with(pheromone,make_max_color_if,max_color)
+    pheromone[:][:] = a.find_n_replace_with(pheromone,make_min_cond,minimum)
   return pheromone[:][:]
 
 def get_set_food(foodColor, xFood, yFood, foodSize):
@@ -54,19 +50,18 @@ def debugNeg(ant, antInfo):
 global numAnts, timeData, choiceArray, foodSize
 timeData = np.array([[0,0,0,0,0,0,0]])         #remove first(this) row later
 
-numAnts = 2        #int(sys.argv[1])
-foodSize = 5
-iteration = 10000         # actual time take per ant
+numAnts = 50        #int(sys.argv[1])
+foodSize = 10
 
 global X, Y, xFood, yFood, nestX, nestY
-X = 10            #int(sys.argv[2]) #increments of 5 (food placement)  # X size of world  **Recall array elements will be [0,4]
-Y = 10            #int(sys.argv[3]) # Y size of world
+X = 30            #int(sys.argv[2]) #increments of 5 (food placement)  # X size of world  **Recall array elements will be [0,4]
+Y = 30            #int(sys.argv[3]) # Y size of world
 xFood = int(X*(4/5))
 yFood = int(Y*(4/5))
 nestX = 0                 #for parts of the program to reference, cant change this here
 nestY = 0
 
-decayRateMult = .9             # pheromone decay rate
+decayRateMult = .97             # pheromone decay rate
 decayRateSub = .02
 randPher = 1.             # how much pheromone an ant lays
 foodPher = 10.
@@ -90,7 +85,6 @@ black = foodPher
 #global antTime, antInfo, foodMap
 antTime = 0
 antInfo = a.generateAnts(numAnts)
-print(antInfo)
 foodMap = a.generateFoodMap(X,Y,xFood,yFood,foodSize)
 pheromone = a.generatePheromoneMap(X,Y,1.0)
 master = np.zeros((X,Y))              # intialize master array
@@ -108,7 +102,8 @@ ax.colorbar(master_obj)
 plt.pause(.01)
 
 i=0
-while antTime<10000:
+while antTime<100000:
+
 
   for ant in range(numAnts):
 
@@ -116,11 +111,11 @@ while antTime<10000:
     choice = a.choose(options, ant, antInfo)      # normalize Roll Biased Die
     a.updatePosition(ant,antInfo,choice)
     foodSize = a.checkIfHasFood(ant,antInfo,xFood,yFood,foodSize)
-    pheromone[:][:] = a.layPheromone(ant,randPher,foodPher,antInfo,pheromone)
+    pheromone[:][:] = a.layPheromone(ant,randPher,foodPher,antInfo,pheromone,max_color)
     a.checkIfSuccess(ant,antInfo,antTime,timeData,nestX,nestY)
-
-  print(pheromone)
-  print ('maow')
+    
+    #print(antTime, ant, antInfo[ant][4], antInfo[ant][5])
+    print(timeData)
   pheromone[:][:] = a.reducePheromoneMult(pheromone,decayRateMult)
   antTime+=1
 
@@ -128,7 +123,7 @@ while antTime<10000:
   master[yFood][xFood] = get_set_food(green,xFood,yFood,foodSize)     # color the food
   for i in range(numAnts):
     master[antInfo[i][1]][antInfo[i][0]] = get_set_ants(black, green, master, i, antInfo)
-    
+  
   master_obj.set_data(master)
   plt.draw()
   plt.pause(.01)
