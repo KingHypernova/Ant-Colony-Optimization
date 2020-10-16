@@ -3,10 +3,16 @@
 import antLib as a
 import numpy as np
 import random as r
+import sys
 import time
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
 import matplotlib.animation as animation
+
+print(sys.version)
+print("numpy verion: " + np.__version__)
+print("matplotlib version: " + matplotlib.__version__)
 
 def get_set_ants(ant_color, hasFood_color, master, ant, antInfo):
   x = antInfo[ant][0]
@@ -17,7 +23,7 @@ def get_set_ants(ant_color, hasFood_color, master, ant, antInfo):
   elif hasFood == True:   # if has food, ant is food color
     return hasFood_color
 
-def get_set_pheromone():  #map all pher vals to 0<p<= max_color
+def get_set_pheromone(pheromone):  #map all pher vals to 0<p<= max_color
   make_min_cond = pheromone<0.1
   im_too_small = make_min_cond.any() 
   all_same = (pheromone[:][:]==pheromone[X-1][Y-1]).all()
@@ -46,11 +52,11 @@ def debugNeg(ant, antInfo):
     print("I WENT OUT OF BOUNDS FUCK ME")
     exit() 
 
-#=============World data initialization==============
+#=============World data initialization - CHANGE THIS TO CHANGE ANIMATION===========
 global numAnts, timeData, choiceArray, foodSize
 timeData = np.array([[0,0,0,0,0,0,0]])         #remove first(this) row later
 
-numAnts = 50        #int(sys.argv[1])
+numAnts = 15        #int(sys.argv[1])
 foodSize = 10
 
 global X, Y, xFood, yFood, nestX, nestY
@@ -61,7 +67,7 @@ yFood = int(Y*(4/5))
 nestX = 0                 #for parts of the program to reference, cant change this here
 nestY = 0
 
-decayRateMult = .97             # pheromone decay rate
+decayRateMult = .95             # pheromone decay rate
 decayRateSub = .02
 randPher = 1.             # how much pheromone an ant lays
 foodPher = 10.
@@ -73,7 +79,7 @@ black_rgba = (0.0, 0.0, 0.0, 1.0)
 green_rgba = (0.0, 230./256., 64./256., 1.0)
 cmap, ant_cmap = a.create_ant_cmap(black_rgba, green_rgba)
 
-global black, green
+global black, green, max_color
 white = 0.0
 max_color = (1.0 - 2./cmap.N - 0.00000001)*foodPher    # max color value
 min_green = (1.0 - 2./cmap.N)*foodPher 
@@ -99,11 +105,10 @@ ax, fig = plt.subplots()
 master_obj = fig.matshow(master, cmap=ant_cmap, vmin=0.0, vmax=foodPher)
 ax.colorbar(master_obj)
 
-plt.pause(.01)
+plt.pause(.001)
 
 i=0
 while antTime<100000:
-
 
   for ant in range(numAnts):
 
@@ -113,20 +118,17 @@ while antTime<100000:
     foodSize = a.checkIfHasFood(ant,antInfo,xFood,yFood,foodSize)
     pheromone[:][:] = a.layPheromone(ant,randPher,foodPher,antInfo,pheromone,max_color)
     a.checkIfSuccess(ant,antInfo,antTime,timeData,nestX,nestY)
-    
-    #print(antTime, ant, antInfo[ant][4], antInfo[ant][5])
-    print(timeData)
-  pheromone[:][:] = a.reducePheromoneMult(pheromone,decayRateMult)
-  antTime+=1
 
-  master[:][:] = get_set_pheromone()
+  pheromone[:][:] = a.reducePheromoneMult(pheromone,decayRateMult)
+  master[:][:] = get_set_pheromone(pheromone)
   master[yFood][xFood] = get_set_food(green,xFood,yFood,foodSize)     # color the food
   for i in range(numAnts):
     master[antInfo[i][1]][antInfo[i][0]] = get_set_ants(black, green, master, i, antInfo)
-  
+  antTime+=1
+
   master_obj.set_data(master)
   plt.draw()
-  plt.pause(.01)
+  plt.pause(.001)
 
 plt.ioff()    
 plt.show()
