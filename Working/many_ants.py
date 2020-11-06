@@ -54,14 +54,14 @@ def debugNeg(ant, antInfo):
 
 #=============World data initialization - CHANGE THIS TO CHANGE ANIMATION===========
 global numAnts, timeData, choiceArray, foodSize
-timeData = np.array([[0,0,0,0,0,0,0]])         #remove first(this) row later
+timeData = np.array([[0,0,0,0,0,0,0]])         #remove this row later
 
-numAnts = 15        #int(sys.argv[1])
+numAnts = 10        #int(sys.argv[1])
 foodSize = 10
 
 global X, Y, xFood, yFood, nestX, nestY
-X = 30            #int(sys.argv[2]) #increments of 5 (food placement)  # X size of world  **Recall array elements will be [0,4]
-Y = 30            #int(sys.argv[3]) # Y size of world
+X = 20            #int(sys.argv[2]) #increments of 5 (food placement)  # X size of world  **Recall array elements will be [0,4]
+Y = 20            #int(sys.argv[3]) # Y size of world
 xFood = int(X*(4/5))
 yFood = int(Y*(4/5))
 nestX = 0                 #for parts of the program to reference, cant change this here
@@ -105,7 +105,7 @@ ax, fig = plt.subplots()
 master_obj = fig.matshow(master, cmap=ant_cmap, vmin=0.0, vmax=foodPher)
 ax.colorbar(master_obj)
 
-plt.pause(.001)
+plt.pause(.0001)
 
 i=0
 while antTime<100000:
@@ -128,7 +128,7 @@ while antTime<100000:
 
   master_obj.set_data(master)
   plt.draw()
-  plt.pause(.001)
+  plt.pause(.0001)
 
 plt.ioff()    
 plt.show()
